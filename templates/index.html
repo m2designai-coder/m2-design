@@ -2,10 +2,16 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>M2 DESIGN</title>
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
     <style>
+        :root {
+            /* Переменные безопасных зон ВК для безрамочных экранов */
+            --safe-area-inset-top: 0px;
+            --safe-area-inset-bottom: 0px;
+        }
+
         body { 
             background: #000; 
             color: #00f2ff; 
@@ -15,8 +21,12 @@
             align-items: center; 
             height: 100vh; 
             margin: 0; 
-            overflow: hidden; 
+            overflow: hidden;
+            /* Адаптация под челки и системные панели */
+            padding-top: var(--safe-area-inset-top);
+            padding-bottom: var(--safe-area-inset-bottom);
         }
+
         .card { 
             border: 2px solid #0044ff; 
             padding: 40px; 
@@ -26,20 +36,25 @@
             box-shadow: 0 0 30px rgba(0, 68, 255, 0.4); 
             border-left: 5px solid #00f2ff;
             transition: transform 0.3s ease;
+            z-index: 10;
         }
+
         .card:hover {
-            transform: scale(1.02);
+            transform: scale(1.05);
         }
+
         h1 { 
             font-size: 2.5em; 
             letter-spacing: 2px; 
             margin: 0; 
             text-transform: uppercase;
         }
+
         h1 sup {
             font-size: 0.5em;
             color: #00f2ff;
         }
+
         .status { 
             color: #fff; 
             margin-top: 15px; 
@@ -47,17 +62,20 @@
             opacity: 0.8; 
             letter-spacing: 1px;
         }
+
         .status sup {
             font-size: 0.6em;
         }
-        /* Декоративный элемент "Орбита" */
+
+        /* Анимированные орбиты на фоне */
         .orbit { 
             border: 1px dashed #0044ff; 
             border-radius: 50%; 
             position: absolute; 
-            z-index: -1; 
+            z-index: 1; 
             animation: rotate 20s linear infinite;
         }
+
         @keyframes rotate {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
@@ -65,8 +83,8 @@
     </style>
 </head>
 <body>
-    <div class="orbit" style="width: 300px; height: 300px;"></div>
-    <div class="orbit" style="width: 500px; height: 500px; animation-direction: reverse;"></div>
+    <div class="orbit" style="width: 350px; height: 350px;"></div>
+    <div class="orbit" style="width: 600px; height: 600px; animation-direction: reverse; opacity: 0.5;"></div>
 
     <div class="card">
         <h1>M2 DESIGN<sup>°</sup></h1>
@@ -74,14 +92,29 @@
     </div>
 
     <script>
-        // Инициализация Mini App
-        vkBridge.send('VKWebAppInit')
-            .then(data => {
-                console.log('VK Mini App инициализирован');
-            })
-            .catch(error => {
-                console.error('Ошибка инициализации:', error);
-            });
+        // 1. Инициализация Mini App
+        vkBridge.send('VKWebAppInit');
+
+        // 2. Настройка полноэкранного режима для мобильных устройств
+        // Красим системные панели телефона в цвет фона приложения
+        vkBridge.send('VKWebAppSetViewSettings', {
+            status_bar_style: 'light', 
+            action_bar_color: '#000000',
+            navigation_bar_color: '#000000'
+        });
+
+        // 3. Получение размеров безопасных зон (для iOS и новых Android)
+        vkBridge.subscribe((e) => {
+            if (e.detail.type === 'VKWebAppUpdateConfig') {
+                const { viewport_height, viewport_width, insets } = e.detail.data;
+                if (insets) {
+                    document.documentElement.style.setProperty('--safe-area-inset-top', `${insets.top}px`);
+                    document.documentElement.style.setProperty('--safe-area-inset-bottom', `${insets.bottom}px`);
+                }
+            }
+        });
+
+        console.log('M2 DESIGN: Система адаптации и VK Bridge активны.');
     </script>
 </body>
 </html>
