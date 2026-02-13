@@ -7,44 +7,47 @@
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
     <style>
         :root {
-            /* Переменные безопасных зон ВК для безрамочных экранов */
             --safe-area-inset-top: 0px;
             --safe-area-inset-bottom: 0px;
         }
 
+        /* Убираем прокрутку и фиксируем фон на весь экран браузера */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+        }
+
         body { 
-            background: #000; 
             color: #00f2ff; 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
-            height: 100vh; 
-            margin: 0; 
-            overflow: hidden;
-            /* Адаптация под челки и системные панели */
+            /* Адаптация под мобильные челки и десктопные фреймы */
             padding-top: var(--safe-area-inset-top);
             padding-bottom: var(--safe-area-inset-bottom);
         }
 
+        /* Контейнер, который будет масштабироваться под браузер */
         .card { 
             border: 2px solid #0044ff; 
-            padding: 40px; 
+            padding: 5vw; /* Используем относительные единицы для десктопа */
             border-radius: 20px; 
             text-align: center; 
             background: rgba(0, 5, 20, 0.9);
-            box-shadow: 0 0 30px rgba(0, 68, 255, 0.4); 
+            box-shadow: 0 0 50px rgba(0, 68, 255, 0.3); 
             border-left: 5px solid #00f2ff;
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
             z-index: 10;
-        }
-
-        .card:hover {
-            transform: scale(1.05);
+            max-width: 80%;
         }
 
         h1 { 
-            font-size: 2.5em; 
+            font-size: clamp(1.5em, 5vw, 3em); /* Текст адаптируется к размеру окна */
             letter-spacing: 2px; 
             margin: 0; 
             text-transform: uppercase;
@@ -57,23 +60,19 @@
 
         .status { 
             color: #fff; 
-            margin-top: 15px; 
-            font-size: 1.2em; 
+            margin-top: 20px; 
+            font-size: clamp(1em, 2vw, 1.5em);
             opacity: 0.8; 
             letter-spacing: 1px;
         }
 
-        .status sup {
-            font-size: 0.6em;
-        }
-
-        /* Анимированные орбиты на фоне */
+        /* Декоративные орбиты для красоты в браузере */
         .orbit { 
             border: 1px dashed #0044ff; 
             border-radius: 50%; 
             position: absolute; 
             z-index: 1; 
-            animation: rotate 20s linear infinite;
+            animation: rotate 25s linear infinite;
         }
 
         @keyframes rotate {
@@ -83,38 +82,31 @@
     </style>
 </head>
 <body>
-    <div class="orbit" style="width: 350px; height: 350px;"></div>
-    <div class="orbit" style="width: 600px; height: 600px; animation-direction: reverse; opacity: 0.5;"></div>
+    <div class="orbit" style="width: 40vw; height: 40vw; max-width: 500px; max-height: 500px;"></div>
+    <div class="orbit" style="width: 60vw; height: 60vw; max-width: 800px; max-height: 800px; animation-direction: reverse; opacity: 0.3;"></div>
 
     <div class="card">
         <h1>M2 DESIGN<sup>°</sup></h1>
-        <div class="status">M3<sup>°</sup> Assistant: <span style="color: #00ff00;">ONLINE</span></div>
+        <div class="status">M3<sup>°</sup> Assistant: <span style="color: #00ff00; text-shadow: 0 0 10px #00ff00;">ONLINE</span></div>
     </div>
 
     <script>
-        // 1. Инициализация Mini App
+        // Инициализация
         vkBridge.send('VKWebAppInit');
 
-        // 2. Настройка полноэкранного режима для мобильных устройств
-        // Красим системные панели телефона в цвет фона приложения
-        vkBridge.send('VKWebAppSetViewSettings', {
-            status_bar_style: 'light', 
-            action_bar_color: '#000000',
-            navigation_bar_color: '#000000'
-        });
+        // Для десктопа: динамическое изменение высоты фрейма
+        vkBridge.send('VKWebAppResizeWindow', { width: 800, height: 1000 });
 
-        // 3. Получение размеров безопасных зон (для iOS и новых Android)
+        // Подписка на изменение настроек (тема, отступы)
         vkBridge.subscribe((e) => {
             if (e.detail.type === 'VKWebAppUpdateConfig') {
-                const { viewport_height, viewport_width, insets } = e.detail.data;
+                const insets = e.detail.data.insets;
                 if (insets) {
                     document.documentElement.style.setProperty('--safe-area-inset-top', `${insets.top}px`);
                     document.documentElement.style.setProperty('--safe-area-inset-bottom', `${insets.bottom}px`);
                 }
             }
         });
-
-        console.log('M2 DESIGN: Система адаптации и VK Bridge активны.');
     </script>
 </body>
 </html>
